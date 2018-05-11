@@ -1,0 +1,32 @@
+language: c
+
+sudo: false
+
+cache:
+  directories:
+    - ~/.cabal/packages
+    - ~/.cabal/store
+
+matrix:
+  include:
+    - env: CABALVER=2.2 GHCVER=8.2.2
+      addons: {apt: {packages: [cabal-install-2.2,ghc-8.2.2], sources: [hvr-ghc]}}
+    - env: CABALVER=2.2 GHCVER=8.4.2
+      addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.2], sources: [hvr-ghc]}}
+
+before_install:
+  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+
+install:
+  - cabal --version
+  - ghc --version
+  - travis_retry cabal update
+
+script:
+  - cabal new-build --enable-tests --enable-benchmarks --flags=dev
+  # - cabal new-test
+  - cabal new-haddock
+  - cabal sdist
+
+notifications:
+  email: false

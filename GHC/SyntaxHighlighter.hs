@@ -1,0 +1,3 @@
+module GHC.SyntaxHighlighter
+  (  )
+where

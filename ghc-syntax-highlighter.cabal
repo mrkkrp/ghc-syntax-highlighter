@@ -1,0 +1,39 @@
+name:                 ghc-syntax-highlighter
+version:              0.0.1.0
+cabal-version:        1.18
+tested-with:          GHC==8.2.2, GHC==8.4.2
+license:              BSD3
+license-file:         LICENSE.md
+author:               Mark Karpov <markkarpov92@gmail.com>
+maintainer:           Mark Karpov <markkarpov92@gmail.com>
+homepage:             https://github.com/mrkkrp/ghc-syntax-highlighter
+bug-reports:          https://github.com/mrkkrp/ghc-syntax-highlighter/issues
+category:             Text
+synopsis:             Correct syntax highlighter for Haskell using GHC itself
+build-type:           Simple
+description:          Correct syntax highlighter for Haskell using GHC itself.
+extra-doc-files:      CHANGELOG.md
+                    , README.md
+
+source-repository head
+  type:               git
+  location:           https://github.com/mrkkrp/ghc-syntax-highlighter.git
+
+flag dev
+  description:        Turn on development settings.
+  manual:             True
+  default:            False
+
+library
+  build-depends:      base             >= 4.10 && < 5.0
+                    , ghc              >= 8.2  && < 8.5
+  exposed-modules:    GHC.SyntaxHighlighter
+  if flag(dev)
+    ghc-options:      -Wall -Werror -Wcompat
+                      -Wincomplete-record-updates
+                      -Wincomplete-uni-patterns
+                      -Wnoncanonical-monad-instances
+                      -Wnoncanonical-monadfail-instances
+  else
+    ghc-options:      -O2 -Wall
+  default-language:   Haskell2010
