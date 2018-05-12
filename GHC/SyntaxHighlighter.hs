@@ -1,3 +1,18 @@
+-- |
+-- Module      :  GHC.SyntaxHighlighter
+-- Copyright   :  © 2018 Mark Karpov
+-- License     :  BSD 3 clause
+--
+-- Maintainer  :  Mark Karpov <markkarpov92@gmail.com>
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- The module allows you to decompose a 'Text' stream containing Haskell
+-- source code into a stream of 'Text' chunks tagged with 'Token'.
+--
+-- This library uses GHC's lexer, so the result is guaranteed to be 100%
+-- correct, as if it was parsed by GHC itself.
+
 {-# LANGUAGE LambdaCase                    #-}
 {-# LANGUAGE OverloadedStrings             #-}
 {-# LANGUAGE TupleSections                 #-}
@@ -53,6 +68,10 @@ data Loc = Loc !Int !Int !Int !Int
 
 -- | Tokenize Haskell source code. If the code cannot be parsed, return
 -- 'Nothing'. Otherwise return the original input tagged by 'Token's.
+--
+-- The parser does not require the input source code to form a valid Haskell
+-- program, so as long as the lexer can decompose your input (most of the
+-- time), it'll return something in 'Just'.
 
 tokenizeHaskell :: Text -> Maybe [(Token, Text)]
 tokenizeHaskell input =
