@@ -6,8 +6,7 @@
 [![Stackage LTS](http://stackage.org/package/ghc-syntax-highlighter/badge/lts)](http://stackage.org/lts/package/ghc-syntax-highlighter)
 [![Build Status](https://travis-ci.org/mrkkrp/ghc-syntax-highlighter.svg?branch=master)](https://travis-ci.org/mrkkrp/ghc-syntax-highlighter)
 
-Syntax highlighter for Haskell using `ghc` itself as a library. Yes, proper
-syntax highlighting for Haskell.
+Syntax highlighter for Haskell using GHC itself as a library.
 
 ## License
 
