@@ -1,6 +1,7 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE LambdaCase                    #-}
+{-# LANGUAGE OverloadedStrings             #-}
+{-# LANGUAGE TupleSections                 #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module GHC.SyntaxHighlighter
   ( Token (..)
@@ -8,8 +9,10 @@ module GHC.SyntaxHighlighter
 where
 
 import Control.Monad
-import Data.List (unfoldr)
+import Data.Bits
+import Data.List (unfoldr, foldl')
 import Data.Text (Text)
+import Data.Word (Word64)
 import FastString (mkFastString)
 import Module (newSimpleUnitId, ComponentId (..))
 import SrcLoc
@@ -64,7 +67,7 @@ tokenizeHaskell input =
       { L.pWarningFlags = ES.empty
       , L.pExtensionFlags = ES.empty
       , L.pThisPackage = newSimpleUnitId (ComponentId (mkFastString ""))
-      , L.pExtsBitmap = maxBound -- allow all that fancy stuff
+      , L.pExtsBitmap = mkExtsBitmap enabledExts
       }
 
 -- | Haskell lexer.
@@ -109,10 +112,13 @@ srcSpanToLoc :: SrcSpan -> Maybe Loc
 srcSpanToLoc (RealSrcSpan rss) =
   let start = realSrcSpanStart rss
       end   = realSrcSpanEnd   rss
-  in Just $ Loc (srcLocLine start)
-                (srcLocCol start)
-                (srcLocLine end)
-                (srcLocCol end)
+  in if start == end
+       then Nothing -- NOTE Some magic auto-generated tokens that do not
+            -- actually appear in the input stream. Drop them.
+       else Just $ Loc (srcLocLine start)
+                       (srcLocCol start)
+                       (srcLocLine end)
+                       (srcLocCol end)
 srcSpanToLoc _ = Nothing
 
 -- | Classify a 'L.Token' in terms of 'Token'.
@@ -355,3 +361,93 @@ reachLoc txt@(Text' _ _ original) l c =
               _    -> (l', c' + 1)
         return (ch, Text' l'' c'' s')
   in (Text' l c (T.drop (T.length chunk) original), chunk)
+
+----------------------------------------------------------------------------
+-- Exts bitmap hack
+
+mkExtsBitmap :: [ExtBits] -> Word64
+mkExtsBitmap = foldl' f 0
+  where
+    f w x = bit (fromEnum x) .|. w
+
+-- | Copied from GHC sources that are not yet available in the @ghc@
+-- package.
+
+data ExtBits
+  = FfiBit
+  | InterruptibleFfiBit
+  | CApiFfiBit
+  | ParrBit
+  | ArrowsBit
+  | ThBit
+  | ThQuotesBit
+  | IpBit
+  | OverloadedLabelsBit -- #x overloaded labels
+  | ExplicitForallBit -- the 'forall' keyword and '.' symbol
+  | BangPatBit -- Tells the parser to understand bang-patterns
+               -- (doesn't affect the lexer)
+  | PatternSynonymsBit -- pattern synonyms
+  | HaddockBit-- Lex and parse Haddock comments
+  | MagicHashBit -- "#" in both functions and operators
+  | RecursiveDoBit -- mdo
+  | UnicodeSyntaxBit -- the forall symbol, arrow symbols, etc
+  | UnboxedTuplesBit -- (# and #)
+  | UnboxedSumsBit -- (# and #)
+  | DatatypeContextsBit
+  | TransformComprehensionsBit
+  | QqBit -- enable quasiquoting
+  | InRulePragBit
+  | RawTokenStreamBit -- producing a token stream with all comments included
+  | SccProfilingOnBit
+  | HpcBit
+  | AlternativeLayoutRuleBit
+  | RelaxedLayoutBit
+  | NondecreasingIndentationBit
+  | SafeHaskellBit
+  | TraditionalRecordSyntaxBit
+  | ExplicitNamespacesBit
+  | LambdaCaseBit
+  | BinaryLiteralsBit
+  | NegativeLiteralsBit
+  | HexFloatLiteralsBit
+  | TypeApplicationsBit
+  | StaticPointersBit
+  | NumericUnderscoresBit
+  deriving Enum
+
+-- | Extension we enable for the best user experience.
+
+enabledExts :: [ExtBits]
+enabledExts =
+  [ FfiBit
+  , InterruptibleFfiBit
+  , CApiFfiBit
+  , ParrBit
+  , ArrowsBit
+  , ThBit
+  , ThQuotesBit
+  , IpBit
+  , OverloadedLabelsBit
+  , ExplicitForallBit
+  , BangPatBit
+  , PatternSynonymsBit
+  , HaddockBit
+  , MagicHashBit
+  , RecursiveDoBit
+  , UnicodeSyntaxBit
+  , UnboxedTuplesBit
+  , UnboxedSumsBit
+  , DatatypeContextsBit
+  , TransformComprehensionsBit
+  , QqBit
+  , InRulePragBit
+  , RawTokenStreamBit
+  , SafeHaskellBit
+  , LambdaCaseBit
+  , BinaryLiteralsBit
+  , NegativeLiteralsBit
+  , HexFloatLiteralsBit
+  , TypeApplicationsBit
+  , StaticPointersBit
+  , NumericUnderscoresBit
+  ]
