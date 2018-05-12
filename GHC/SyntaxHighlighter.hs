@@ -67,7 +67,7 @@ tokenizeHaskell input =
       { L.pWarningFlags = ES.empty
       , L.pExtensionFlags = ES.empty
       , L.pThisPackage = newSimpleUnitId (ComponentId (mkFastString ""))
-      , L.pExtsBitmap = mkExtsBitmap enabledExts
+      , L.pExtsBitmap = extsBitmap
       }
 
 -- | Haskell lexer.
@@ -364,6 +364,14 @@ reachLoc txt@(Text' _ _ original) l c =
 
 ----------------------------------------------------------------------------
 -- Exts bitmap hack
+
+-- | Extension bitmap we use in this library.
+
+extsBitmap :: Word64
+extsBitmap = mkExtsBitmap enabledExts
+{-# NOINLINE extsBitmap #-}
+
+-- | Create extension bitmap similarly to how it's done in GHC.
 
 mkExtsBitmap :: [ExtBits] -> Word64
 mkExtsBitmap = foldl' f 0
