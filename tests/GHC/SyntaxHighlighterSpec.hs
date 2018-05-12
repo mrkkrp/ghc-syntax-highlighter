@@ -27,6 +27,8 @@ spec = describe "tokenizeHaskell" $
       , (SpaceTok," ")
       , (ConstructorTok,"Data.Bits")
       , (SpaceTok,"\n\n")
+      , (CommentTok,"-- | Program's entry point.")
+      , (SpaceTok,"\n\n")
       , (VariableTok,"main")
       , (SpaceTok," ")
       , (SymbolTok,"::")
