@@ -14,6 +14,7 @@ build-type:           Simple
 description:          Correct syntax highlighter for Haskell using GHC itself.
 extra-doc-files:      CHANGELOG.md
                     , README.md
+data-files:           data/*.hs
 
 source-repository head
   type:               git
@@ -35,6 +36,22 @@ library
                       -Wincomplete-uni-patterns
                       -Wnoncanonical-monad-instances
                       -Wnoncanonical-monadfail-instances
+  else
+    ghc-options:      -O2 -Wall
+  default-language:   Haskell2010
+
+test-suite tests
+  main-is:            Spec.hs
+  hs-source-dirs:     tests
+  type:               exitcode-stdio-1.0
+  build-depends:      base             >= 4.11 && < 5.0
+                    , ghc-syntax-highlighter
+                    , text             >= 0.2  && < 1.3
+                    , hspec            >= 2.0  && < 3.0
+  other-modules:      GHC.SyntaxHighlighterSpec
+  build-tools:        hspec-discover   >= 2.0  && < 3.0
+  if flag(dev)
+    ghc-options:      -Wall -Werror
   else
     ghc-options:      -O2 -Wall
   default-language:   Haskell2010

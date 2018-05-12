@@ -51,7 +51,7 @@ data Loc = Loc !Int !Int !Int !Int
 -- | Tokenize Haskell source code. If the code cannot be parsed, return
 -- 'Nothing'. Otherwise return the original input tagged by 'Token's.
 
-tokenizeHaskell :: Text -> Maybe [(Token, Text)] -- [(Token, Loc)]
+tokenizeHaskell :: Text -> Maybe [(Token, Text)]
 tokenizeHaskell input =
   case L.unP pLexer parseState of
     L.PFailed {} -> Nothing
@@ -86,7 +86,9 @@ pLexer = go
 sliceInputStream :: Text -> [(Token, Loc)] -> [(Token, Text)]
 sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
   where
-    sliceOnce (_, []) = Nothing
+    sliceOnce (txt, []) = do
+      (txt', chunk) <- tryFetchRest txt
+      return ((SpaceTok, chunk), (txt', []))
     sliceOnce (txt, tss@((t, l):ts)) =
       case tryFetchSpace txt l of
         Nothing ->
@@ -321,6 +323,14 @@ tryFetchSpace txt (Loc sl sc _ _) =
        then Nothing
        else Just (txt', r)
 
+-- | Try to fetch the rest of 'Text'' stream.
+
+tryFetchRest :: Text' -> Maybe (Text', Text)
+tryFetchRest (Text' l c txt) =
+  if T.null txt
+    then Nothing
+    else Just (Text' l c "", txt)
+
 -- | Fetch span at 'Loc'.
 
 fetchSpan :: Text' -> Loc -> (Text', Text)
@@ -337,11 +347,11 @@ reachLoc
 reachLoc txt@(Text' _ _ original) l c =
   let chunk = T.unfoldr f txt
       f (Text' l' c' s) = do
+        guard (l' < l || c' < c)
         (ch, s') <- T.uncons s
         let (l'', c'') = case ch of
               '\n' -> (l' + 1, 1)
               '\t' -> (l', c' + 8 - ((c' - 1) `rem` 8))
               _    -> (l', c' + 1)
-        guard (l'' < l || c'' <= c)
         return (ch, Text' l'' c'' s')
   in (Text' l c (T.drop (T.length chunk) original), chunk)
