@@ -129,6 +129,13 @@ information.
 it's hardcoded to use only that library for highlighting, so some creativity
 may be necessary to get it work.
 
+## Contribution
+
+Issues, bugs, and questions may be reported in [the GitHub issue tracker for
+this project](https://github.com/mrkkrp/ghc-syntax-highlighter/issues).
+
+Pull requests are also welcome and will be reviewed quickly.
+
 ## License
 
 Copyright © 2018 Mark Karpov
