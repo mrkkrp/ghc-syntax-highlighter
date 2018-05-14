@@ -20,7 +20,9 @@
 
 module GHC.SyntaxHighlighter
   ( Token (..)
-  , tokenizeHaskell )
+  , Loc (..)
+  , tokenizeHaskell
+  , tokenizeHaskellLoc )
 where
 
 import Control.Monad
@@ -57,11 +59,18 @@ data Token
   | OtherTok           -- ^ Something else?
   deriving (Eq, Ord, Enum, Bounded, Show)
 
--- | Internal type containing line\/column combinations for start and end
--- positions of a code span.
+-- | Start and end positions of a span. The arguments of the data
+-- constructor contain in order:
+--
+--     * Line number of start position of a span
+--     * Column number of start position of a span
+--     * Line number of end position of a span
+--     * Column number of end position of a span
+--
+-- @since 0.0.2.0
 
 data Loc = Loc !Int !Int !Int !Int
-  deriving (Show)
+  deriving (Eq, Ord, Show)
 
 ----------------------------------------------------------------------------
 -- High-level API
@@ -74,10 +83,34 @@ data Loc = Loc !Int !Int !Int !Int
 -- time), it'll return something in 'Just'.
 
 tokenizeHaskell :: Text -> Maybe [(Token, Text)]
-tokenizeHaskell input =
+tokenizeHaskell input = sliceInputStream input <$> tokenizeHaskellLoc input
+
+-- | Replace 'Loc' locations with actual chunks of input 'Text'.
+
+sliceInputStream :: Text -> [(Token, Loc)] -> [(Token, Text)]
+sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
+  where
+    sliceOnce (txt, []) = do
+      (txt', chunk) <- tryFetchRest txt
+      return ((SpaceTok, chunk), (txt', []))
+    sliceOnce (txt, tss@((t, l):ts)) =
+      case tryFetchSpace txt l of
+        Nothing ->
+          let (txt', chunk) = fetchSpan txt l
+          in Just ((t, chunk), (txt', ts))
+        Just (txt', chunk) ->
+          Just ((SpaceTok, chunk), (txt', tss))
+
+-- | Similar to 'tokenizeHaskell', but instead of 'Text' chunks provides
+-- locations of corresponding spans in the given input stream.
+--
+-- @since 0.0.2.0
+
+tokenizeHaskellLoc :: Text -> Maybe [(Token, Loc)]
+tokenizeHaskellLoc input =
   case L.unP pLexer parseState of
     L.PFailed {} -> Nothing
-    L.POk    _ x -> Just (sliceInputStream input x)
+    L.POk    _ x -> Just x
   where
     location = mkRealSrcLoc (mkFastString "") 1 1
     buffer = stringToStringBuffer (T.unpack input)
@@ -102,22 +135,6 @@ pLexer = go
           case fixupToken r of
             Nothing -> go
             Just  x -> (x:) <$> go
-
--- | Replace 'Loc' locations with actual chunks of input 'Text'.
-
-sliceInputStream :: Text -> [(Token, Loc)] -> [(Token, Text)]
-sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
-  where
-    sliceOnce (txt, []) = do
-      (txt', chunk) <- tryFetchRest txt
-      return ((SpaceTok, chunk), (txt', []))
-    sliceOnce (txt, tss@((t, l):ts)) =
-      case tryFetchSpace txt l of
-        Nothing ->
-          let (txt', chunk) = fetchSpan txt l
-          in Just ((t, chunk), (txt', ts))
-        Just (txt', chunk) ->
-          Just ((SpaceTok, chunk), (txt', tss))
 
 -- | Convert @'Located' 'L.Token'@ representation to a more convenient for
 -- us form.
