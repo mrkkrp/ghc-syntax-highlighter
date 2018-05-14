@@ -334,7 +334,7 @@ data Text' = Text'
   {-# UNPACK #-} !Text
   deriving (Show)
 
--- | Create 'Text' from 'Text''.
+-- | Create 'Text'' from 'Text'.
 
 initText' :: Text -> Text'
 initText' = Text' 1 1
@@ -356,7 +356,7 @@ tryFetchRest (Text' l c txt) =
     then Nothing
     else Just (Text' l c "", txt)
 
--- | Fetch span at 'Loc'.
+-- | Fetch a span at 'Loc'.
 
 fetchSpan :: Text' -> Loc -> (Text', Text)
 fetchSpan txt (Loc _ _ el ec) = reachLoc txt el ec
