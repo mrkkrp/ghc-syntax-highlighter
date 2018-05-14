@@ -9,9 +9,9 @@ maintainer:           Mark Karpov <markkarpov92@gmail.com>
 homepage:             https://github.com/mrkkrp/ghc-syntax-highlighter
 bug-reports:          https://github.com/mrkkrp/ghc-syntax-highlighter/issues
 category:             Text
-synopsis:             Correct syntax highlighter for Haskell using GHC itself
+synopsis:             Syntax highlighter for Haskell using lexer of GHC itself
 build-type:           Simple
-description:          Correct syntax highlighter for Haskell using GHC itself.
+description:          Syntax highlighter for Haskell using lexer of GHC itself.
 extra-doc-files:      CHANGELOG.md
                     , README.md
 data-files:           data/*.hs
