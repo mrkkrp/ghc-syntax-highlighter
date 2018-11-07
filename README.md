@@ -17,7 +17,7 @@ from it:
 
 Parsing Haskell is hard, because Haskell is a complex language with
 countless features. The only way to get it right 100% is to use parser of
-GHC itself. Fortunately, now there is [`ghc`][ghc] package, which as of
+GHC itself. Fortunately, now there is the [`ghc`][ghc] package, which as of
 version 8.4.1 exports enough of GHC's source code to allow us use its lexer.
 
 Alternative approaches, even decent ones like [`highlight.js`][hljs] either
@@ -114,7 +114,7 @@ basicModule =
 ```
 
 `Nothing` is rarely returned if ever, because it looks like the lexer is
-capable of interpreting almost any text as some stream of GHC tokens.
+capable of interpreting almost any text as a stream of GHC tokens.
 
 ## How to use it in your blog
 
@@ -134,7 +134,7 @@ may be necessary to get it work.
 Issues, bugs, and questions may be reported in [the GitHub issue tracker for
 this project](https://github.com/mrkkrp/ghc-syntax-highlighter/issues).
 
-Pull requests are also welcome and will be reviewed quickly.
+Pull requests are also welcome.
 
 ## License
 
