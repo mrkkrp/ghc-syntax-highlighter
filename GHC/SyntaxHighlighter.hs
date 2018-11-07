@@ -13,6 +13,7 @@
 -- This library uses GHC's lexer, so the result is guaranteed to be 100%
 -- correct, as if it was parsed by GHC itself.
 
+{-# LANGUAGE CPP                           #-}
 {-# LANGUAGE LambdaCase                    #-}
 {-# LANGUAGE OverloadedStrings             #-}
 {-# LANGUAGE TupleSections                 #-}
@@ -209,6 +210,9 @@ classifyToken = \case
   L.ITstatic    -> KeywordTok
   L.ITstock     -> KeywordTok
   L.ITanyclass  -> KeywordTok
+#if MIN_VERSION_ghc(8,6,1)
+  L.ITvia       -> KeywordTok
+#endif
   L.ITunit      -> KeywordTok
   L.ITsignature -> KeywordTok
   L.ITdependency -> KeywordTok
@@ -234,9 +238,11 @@ classifyToken = \case
   L.IToptions_prag _ -> PragmaTok
   L.ITinclude_prag _ -> PragmaTok
   L.ITlanguage_prag -> PragmaTok
+#if !MIN_VERSION_ghc(8,6,1)
   L.ITvect_prag _ -> PragmaTok
   L.ITvect_scalar_prag _ -> PragmaTok
   L.ITnovect_prag _ -> PragmaTok
+#endif
   L.ITminimal_prag _ -> PragmaTok
   L.IToverlappable_prag _ -> PragmaTok
   L.IToverlapping_prag _ -> PragmaTok
@@ -255,9 +261,14 @@ classifyToken = \case
   L.ITrarrow _ -> SymbolTok
   L.ITat -> SymbolTok
   L.ITtilde -> SymbolTok
+#if !MIN_VERSION_ghc(8,6,1)
   L.ITtildehsh -> SymbolTok
+#endif
   L.ITdarrow _ -> SymbolTok
   L.ITbang -> SymbolTok
+#if MIN_VERSION_ghc(8,6,1)
+  L.ITstar _ -> SymbolTok
+#endif
   L.ITbiglam -> SymbolTok
   L.ITocurly -> SymbolTok
   L.ITccurly -> SymbolTok
