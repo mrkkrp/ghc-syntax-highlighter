@@ -432,7 +432,9 @@ data ExtBits
   = FfiBit
   | InterruptibleFfiBit
   | CApiFfiBit
+#if !MIN_VERSION_ghc(8,6,0)
   | ParrBit
+#endif
   | ArrowsBit
   | ThBit
   | ThQuotesBit
@@ -468,6 +470,9 @@ data ExtBits
   | TypeApplicationsBit
   | StaticPointersBit
   | NumericUnderscoresBit
+#if MIN_VERSION_ghc(8,6,0)
+  | StarIsTypeBit
+#endif
   deriving Enum
 
 -- | Extension we enable for the best user experience.
@@ -477,7 +482,9 @@ enabledExts =
   [ FfiBit
   , InterruptibleFfiBit
   , CApiFfiBit
+#if !MIN_VERSION_ghc(8,6,0)
   , ParrBit
+#endif
   , ArrowsBit
   , ThBit
   , ThQuotesBit
@@ -505,4 +512,7 @@ enabledExts =
   , TypeApplicationsBit
   , StaticPointersBit
   , NumericUnderscoresBit
+#if MIN_VERSION_ghc(8,6,0)
+  , StarIsTypeBit
+#endif
   ]

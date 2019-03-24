@@ -14,6 +14,7 @@ spec = describe "tokenizeHaskell" $ do
   it "parses a basic module" (withFile "data/Main.hs" basicModule)
   it "parses a type family" (withFile "data/TypeFamily.hs" typeFamily)
   it "parses an explicit forall" (withFile "data/Forall.hs" explicitForall)
+  it "parses lambda case correctly" (withFile "data/LambdaCase.hs" lambdaCase)
 
 withFile :: FilePath -> [(Token, Text)] -> Expectation
 withFile path toks = do
@@ -158,5 +159,42 @@ explicitForall =
   , (SymbolTok,"=")
   , (SpaceTok," ")
   , (VariableTok,"undefined")
+  , (SpaceTok,"\n")
+  ]
+
+lambdaCase :: [(Token, Text)]
+lambdaCase =
+  [ (VariableTok,"foo")
+  , (SpaceTok," ")
+  , (SymbolTok,"::")
+  , (SpaceTok," ")
+  , (ConstructorTok,"Foo")
+  , (SpaceTok," ")
+  , (SymbolTok,"->")
+  , (SpaceTok," ")
+  , (ConstructorTok,"Maybe")
+  , (SpaceTok," ")
+  , (ConstructorTok,"Bar")
+  , (SpaceTok,"\n")
+  , (VariableTok,"foo")
+  , (SpaceTok," ")
+  , (SymbolTok,"=")
+  , (SpaceTok," ")
+  , (SymbolTok,"\\")
+  , (SymbolTok,"case")
+  , (SpaceTok,"\n  ")
+  , (ConstructorTok,"Foo")
+  , (SpaceTok," ")
+  , (SymbolTok,"->")
+  , (SpaceTok," ")
+  , (ConstructorTok,"Just")
+  , (SpaceTok," ")
+  , (ConstructorTok,"Bar")
+  , (SpaceTok,"\n  ")
+  , (SymbolTok,"_")
+  , (SpaceTok,"   ")
+  , (SymbolTok,"->")
+  , (SpaceTok," ")
+  , (ConstructorTok,"Nothing")
   , (SpaceTok,"\n")
   ]
