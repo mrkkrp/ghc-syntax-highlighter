@@ -29,6 +29,7 @@ where
 import Control.Monad
 import Data.Bits
 import Data.List (unfoldr, foldl')
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.Word (Word64)
 import FastString (mkFastString)
@@ -98,7 +99,12 @@ sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
       case tryFetchSpace txt l of
         Nothing ->
           let (txt', chunk) = fetchSpan txt l
-          in Just ((t, chunk), (txt', ts))
+              t' = case t of
+                CommentTok -> if isHeaderPragma chunk
+                  then PragmaTok
+                  else CommentTok
+                tok -> tok
+          in Just ((t', chunk), (txt', ts))
         Just (txt', chunk) ->
           Just ((SpaceTok, chunk), (txt', tss))
 
@@ -408,6 +414,16 @@ reachLoc txt@(Text' _ _ original) l c =
               _    -> (l', c' + 1)
         return (ch, Text' l'' c'' s')
   in (Text' l c (T.drop (T.length chunk) original), chunk)
+
+----------------------------------------------------------------------------
+-- Pragmas detection
+
+-- | Detect file header pragma.
+
+isHeaderPragma :: Text -> Bool
+isHeaderPragma txt0 = isJust $ do
+  txt1 <- T.stripStart <$> T.stripPrefix "{-#" txt0
+  guard (T.isPrefixOf "LANGUAGE" txt1 || T.isPrefixOf "OPTIONS_GHC" txt1)
 
 ----------------------------------------------------------------------------
 -- Exts bitmap hack

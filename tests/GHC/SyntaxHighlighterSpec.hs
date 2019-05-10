@@ -15,6 +15,7 @@ spec = describe "tokenizeHaskell" $ do
   it "parses a type family" (withFile "data/TypeFamily.hs" typeFamily)
   it "parses an explicit forall" (withFile "data/Forall.hs" explicitForall)
   it "parses lambda case correctly" (withFile "data/LambdaCase.hs" lambdaCase)
+  it "parses file header pragmas correctly" (withFile "data/Pragmas.hs" pragmas)
 
 withFile :: FilePath -> [(Token, Text)] -> Expectation
 withFile path toks = do
@@ -196,5 +197,31 @@ lambdaCase =
   , (SymbolTok,"->")
   , (SpaceTok," ")
   , (ConstructorTok,"Nothing")
+  , (SpaceTok,"\n")
+  ]
+
+pragmas :: [(Token, Text)]
+pragmas =
+  [ (PragmaTok,"{-# LANGUAGE OverloadedStrings #-}")
+  , (SpaceTok,"\n")
+  , (PragmaTok,"{-# OPTIONS_GHC -fno-warn-unused-matches #-}")
+  , (SpaceTok,"\n\n")
+  , (VariableTok,"main")
+  , (SpaceTok," ")
+  , (SymbolTok,"::")
+  , (SpaceTok," ")
+  , (ConstructorTok,"IO")
+  , (SpaceTok," ")
+  , (SymbolTok,"(")
+  , (SymbolTok,")")
+  , (SpaceTok,"\n")
+  , (VariableTok,"main")
+  , (SpaceTok," ")
+  , (SymbolTok,"=")
+  , (SpaceTok," ")
+  , (VariableTok,"return")
+  , (SpaceTok," ")
+  , (SymbolTok,"(")
+  , (SymbolTok,")")
   , (SpaceTok,"\n")
   ]
