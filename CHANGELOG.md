@@ -1,3 +1,7 @@
+## Unreleased
+
+* Dropped support for GHC 8.2.
+
 ## GHC syntax highlighter 0.0.4.0
 
 * Implemented highlighting of file header pragmas such as `OPTIONS_GHC` and
