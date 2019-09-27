@@ -17,7 +17,7 @@
 {-# LANGUAGE LambdaCase                    #-}
 {-# LANGUAGE OverloadedStrings             #-}
 {-# LANGUAGE TupleSections                 #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module GHC.SyntaxHighlighter
   ( Token (..)
@@ -27,13 +27,12 @@ module GHC.SyntaxHighlighter
 where
 
 import Control.Monad
-import Data.Bits
-import Data.List (unfoldr, foldl')
+import Data.List (foldl', unfoldr)
 import Data.Maybe (isJust)
 import Data.Text (Text)
-import Data.Word (Word64)
+import DynFlags
 import FastString (mkFastString)
-import Module (newSimpleUnitId, ComponentId (..))
+import GHC.LanguageExtensions
 import SrcLoc
 import StringBuffer
 import qualified Data.Text as T
@@ -122,11 +121,17 @@ tokenizeHaskellLoc input =
     location = mkRealSrcLoc (mkFastString "") 1 1
     buffer = stringToStringBuffer (T.unpack input)
     parseState = L.mkPStatePure parserFlags buffer location
-    parserFlags = L.ParserFlags
-      { L.pWarningFlags = ES.empty
-      , L.pExtensionFlags = ES.empty
-      , L.pThisPackage = newSimpleUnitId (ComponentId (mkFastString ""))
-      , L.pExtsBitmap = extsBitmap
+    parserFlags = L.mkParserFlags (foldl' xopt_set initialDynFlags enabledExts)
+    initialDynFlags = DynFlags
+      { warningFlags = ES.empty
+      , generalFlags = ES.fromList
+        [ Opt_Haddock
+        , Opt_KeepRawTokenStream
+        ]
+      , extensions = []
+      , extensionFlags = ES.empty
+      , safeHaskell = Sf_Safe
+      , language = Just Haskell2010
       }
 
 -- | Haskell lexer.
@@ -255,6 +260,9 @@ classifyToken = \case
   L.IToverlaps_prag _ -> PragmaTok
   L.ITincoherent_prag _ -> PragmaTok
   L.ITctype _ -> PragmaTok
+#if MIN_VERSION_ghc(8,8,1)
+  L.ITcomment_line_prag -> PragmaTok
+#endif
   -- Reserved symbols
   L.ITdotdot -> SymbolTok
   L.ITcolon -> SymbolTok
@@ -426,109 +434,39 @@ isHeaderPragma txt0 = isJust $ do
   guard (T.isPrefixOf "LANGUAGE" txt1 || T.isPrefixOf "OPTIONS_GHC" txt1)
 
 ----------------------------------------------------------------------------
--- Exts bitmap hack
+-- Language extensions
 
--- | Extension bitmap we use in this library.
+-- | Language extensions we enable by default.
 
-extsBitmap :: Word64
-extsBitmap = mkExtsBitmap enabledExts
-{-# NOINLINE extsBitmap #-}
-
--- | Create extension bitmap similarly to how it's done in GHC.
-
-mkExtsBitmap :: [ExtBits] -> Word64
-mkExtsBitmap = foldl' f 0
-  where
-    f w x = bit (fromEnum x) .|. w
-
--- | Copied from GHC sources that are not yet available in the @ghc@
--- package.
-
-data ExtBits
-  = FfiBit
-  | InterruptibleFfiBit
-  | CApiFfiBit
-#if !MIN_VERSION_ghc(8,6,0)
-  | ParrBit
-#endif
-  | ArrowsBit
-  | ThBit
-  | ThQuotesBit
-  | IpBit
-  | OverloadedLabelsBit -- #x overloaded labels
-  | ExplicitForallBit -- the 'forall' keyword and '.' symbol
-  | BangPatBit -- Tells the parser to understand bang-patterns
-               -- (doesn't affect the lexer)
-  | PatternSynonymsBit -- pattern synonyms
-  | HaddockBit-- Lex and parse Haddock comments
-  | MagicHashBit -- "#" in both functions and operators
-  | RecursiveDoBit -- mdo
-  | UnicodeSyntaxBit -- the forall symbol, arrow symbols, etc
-  | UnboxedTuplesBit -- (# and #)
-  | UnboxedSumsBit -- (# and #)
-  | DatatypeContextsBit
-  | TransformComprehensionsBit
-  | QqBit -- enable quasiquoting
-  | InRulePragBit
-  | RawTokenStreamBit -- producing a token stream with all comments included
-  | SccProfilingOnBit
-  | HpcBit
-  | AlternativeLayoutRuleBit
-  | RelaxedLayoutBit
-  | NondecreasingIndentationBit
-  | SafeHaskellBit
-  | TraditionalRecordSyntaxBit
-  | ExplicitNamespacesBit
-  | LambdaCaseBit
-  | BinaryLiteralsBit
-  | NegativeLiteralsBit
-  | HexFloatLiteralsBit
-  | TypeApplicationsBit
-  | StaticPointersBit
-  | NumericUnderscoresBit
-#if MIN_VERSION_ghc(8,6,0)
-  | StarIsTypeBit
-#endif
-  deriving Enum
-
--- | Extension we enable for the best user experience.
-
-enabledExts :: [ExtBits]
+enabledExts :: [Extension]
 enabledExts =
-  [ FfiBit
-  , InterruptibleFfiBit
-  , CApiFfiBit
-#if !MIN_VERSION_ghc(8,6,0)
-  , ParrBit
-#endif
-  , ArrowsBit
-  , ThBit
-  , ThQuotesBit
-  , IpBit
-  , OverloadedLabelsBit
-  , ExplicitForallBit
-  , BangPatBit
-  , PatternSynonymsBit
-  , HaddockBit
-  , MagicHashBit
-  , RecursiveDoBit
-  , UnicodeSyntaxBit
-  , UnboxedTuplesBit
-  , UnboxedSumsBit
-  , DatatypeContextsBit
-  , TransformComprehensionsBit
-  , QqBit
-  , InRulePragBit
-  , RawTokenStreamBit
-  , SafeHaskellBit
-  , LambdaCaseBit
-  , BinaryLiteralsBit
-  , NegativeLiteralsBit
-  , HexFloatLiteralsBit
-  , TypeApplicationsBit
-  , StaticPointersBit
-  , NumericUnderscoresBit
+  [ ForeignFunctionInterface
+  , InterruptibleFFI
+  , CApiFFI
+  , Arrows
+  , TemplateHaskell
+  , TemplateHaskellQuotes
+  , ImplicitParams
+  , OverloadedLabels
+  , ExplicitForAll
+  , BangPatterns
+  , PatternSynonyms
+  , MagicHash
+  , RecursiveDo
+  , UnicodeSyntax
+  , UnboxedTuples
+  , UnboxedSums
+  , DatatypeContexts
+  , TransformListComp
+  , QuasiQuotes
+  , LambdaCase
+  , BinaryLiterals
+  , NegativeLiterals
+  , HexFloatLiterals
+  , TypeApplications
+  , StaticPointers
 #if MIN_VERSION_ghc(8,6,0)
-  , StarIsTypeBit
+  , NumericUnderscores
+  , StarIsType
 #endif
   ]
