@@ -1,4 +1,6 @@
-## Unreleased
+## GHC syntax highlighter 0.0.4.1
+
+* Works with GHC 8.8.
 
 * Dropped support for GHC 8.2.
 
