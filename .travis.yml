@@ -25,7 +25,7 @@ install:
   - travis_retry cabal new-update
 
 script:
-  - cabal new-build --enable-tests --enable-benchmarks --flags=dev
+  - travis_wait 30 cabal new-build --enable-tests --enable-benchmarks --flags=dev
   - cabal new-test --enable-tests --enable-benchmarks --flags=dev
   - cabal new-haddock
   - cabal new-sdist

@@ -1,3 +1,7 @@
+## GHC syntax highlighter 0.0.5.0
+
+* Uses `ghc-lib-parser`.
+
 ## GHC syntax highlighter 0.0.4.1
 
 * Works with GHC 8.8.
