@@ -27,7 +27,7 @@ flag dev
 
 library
   build-depends:      base             >= 4.11 && < 5.0
-                    , ghc-lib-parser   == 8.8.1
+                    , ghc-lib-parser   >= 8.8.1 && < 8.8.2
                     , text             >= 0.2  && < 1.3
   exposed-modules:    GHC.SyntaxHighlighter
   if flag(dev)
