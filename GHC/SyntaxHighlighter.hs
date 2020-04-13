@@ -31,9 +31,12 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import DynFlags
 import FastString (mkFastString)
+import Fingerprint (fingerprint0)
 import GHC.LanguageExtensions
+import GHC.Version (cProjectVersion)
 import SrcLoc
 import StringBuffer
+import ToolSettings
 import qualified Data.Text as T
 import qualified EnumSet   as ES
 import qualified Lexer     as L
@@ -131,6 +134,16 @@ tokenizeHaskellLoc input =
       , extensionFlags = ES.empty
       , safeHaskell = Sf_Safe
       , language = Just Haskell2010
+      , ghcNameVersion = GhcNameVersion
+        { ghcNameVersion_programName = "ghc"
+        , ghcNameVersion_projectVersion = cProjectVersion
+        }
+      , fileSettings = FileSettings {}
+      , toolSettings = ToolSettings
+          { toolSettings_opt_P_fingerprint = fingerprint0
+          , toolSettings_pgm_F = ""
+          }
+      , platformMisc = PlatformMisc {}
       }
 
 -- | Haskell lexer.
