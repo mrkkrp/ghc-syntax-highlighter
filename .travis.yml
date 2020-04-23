@@ -25,9 +25,14 @@ install:
   - travis_retry cabal new-update
 
 script:
-  - travis_wait 30 cabal new-build --enable-tests --enable-benchmarks --flags=dev
-  - cabal new-test --enable-tests --enable-benchmarks --flags=dev
-  - cabal new-haddock
+  # To avoid re-compilation it is important to use exactly the same
+  # configuration for all steps.
+  - export CONFIG="--enable-tests --enable-benchmarks --flags=dev"
+  - cabal format
+  - git diff --exit-code --color=always
+  - cabal new-build $CONFIG
+  - cabal new-test $CONFIG
+  - cabal new-haddock $CONFIG
   - cabal new-sdist
 
 notifications:
