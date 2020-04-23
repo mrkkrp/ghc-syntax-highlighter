@@ -1,3 +1,8 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
+
 -- |
 -- Module      :  GHC.SyntaxHighlighter
 -- Copyright   :  © 2018–present Mark Karpov
@@ -12,54 +17,61 @@
 --
 -- This library uses GHC's lexer, so the result is guaranteed to be 100%
 -- correct, as if it was parsed by GHC itself.
-
-{-# LANGUAGE LambdaCase                    #-}
-{-# LANGUAGE OverloadedStrings             #-}
-{-# LANGUAGE TupleSections                 #-}
-{-# OPTIONS_GHC -fno-warn-missing-fields #-}
-
 module GHC.SyntaxHighlighter
-  ( Token (..)
-  , Loc (..)
-  , tokenizeHaskell
-  , tokenizeHaskellLoc )
+  ( Token (..),
+    Loc (..),
+    tokenizeHaskell,
+    tokenizeHaskellLoc,
+  )
 where
 
 import Control.Monad
 import Data.List (foldl', unfoldr)
 import Data.Maybe (isJust)
 import Data.Text (Text)
+import qualified Data.Text as T
 import DynFlags
+import qualified EnumSet as ES
 import FastString (mkFastString)
 import Fingerprint (fingerprint0)
 import GHC.LanguageExtensions
 import GHC.Version (cProjectVersion)
+import qualified Lexer as L
 import SrcLoc
 import StringBuffer
 import ToolSettings
-import qualified Data.Text as T
-import qualified EnumSet   as ES
-import qualified Lexer     as L
 
 ----------------------------------------------------------------------------
 -- Data types
 
 -- | Token types that are used as tags to mark spans of source code.
-
 data Token
-  = KeywordTok         -- ^ Keyword
-  | PragmaTok          -- ^ Pragmas
-  | SymbolTok          -- ^ Symbols (punctuation that is not an operator)
-  | VariableTok        -- ^ Variable name (term level)
-  | ConstructorTok     -- ^ Data\/type constructor
-  | OperatorTok        -- ^ Operator
-  | CharTok            -- ^ Character
-  | StringTok          -- ^ String
-  | IntegerTok         -- ^ Integer
-  | RationalTok        -- ^ Rational number
-  | CommentTok         -- ^ Comment (including Haddocks)
-  | SpaceTok           -- ^ Space filling
-  | OtherTok           -- ^ Something else?
+  = -- | Keyword
+    KeywordTok
+  | -- | Pragmas
+    PragmaTok
+  | -- | Symbols (punctuation that is not an operator)
+    SymbolTok
+  | -- | Variable name (term level)
+    VariableTok
+  | -- | Data\/type constructor
+    ConstructorTok
+  | -- | Operator
+    OperatorTok
+  | -- | Character
+    CharTok
+  | -- | String
+    StringTok
+  | -- | Integer
+    IntegerTok
+  | -- | Rational number
+    RationalTok
+  | -- | Comment (including Haddocks)
+    CommentTok
+  | -- | Space filling
+    SpaceTok
+  | -- | Something else?
+    OtherTok
   deriving (Eq, Ord, Enum, Bounded, Show)
 
 -- | Start and end positions of a span. The arguments of the data
@@ -71,7 +83,6 @@ data Token
 --     * Column number of end position of a span
 --
 -- @since 0.0.2.0
-
 data Loc = Loc !Int !Int !Int !Int
   deriving (Eq, Ord, Show)
 
@@ -84,28 +95,27 @@ data Loc = Loc !Int !Int !Int !Int
 -- The parser does not require the input source code to form a valid Haskell
 -- program, so as long as the lexer can decompose your input (most of the
 -- time), it'll return something in 'Just'.
-
 tokenizeHaskell :: Text -> Maybe [(Token, Text)]
 tokenizeHaskell input = sliceInputStream input <$> tokenizeHaskellLoc input
 
 -- | Replace 'Loc' locations with actual chunks of input 'Text'.
-
 sliceInputStream :: Text -> [(Token, Loc)] -> [(Token, Text)]
 sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
   where
     sliceOnce (txt, []) = do
       (txt', chunk) <- tryFetchRest txt
       return ((SpaceTok, chunk), (txt', []))
-    sliceOnce (txt, tss@((t, l):ts)) =
+    sliceOnce (txt, tss@((t, l) : ts)) =
       case tryFetchSpace txt l of
         Nothing ->
           let (txt', chunk) = fetchSpan txt l
               t' = case t of
-                CommentTok -> if isHeaderPragma chunk
-                  then PragmaTok
-                  else CommentTok
+                CommentTok ->
+                  if isHeaderPragma chunk
+                    then PragmaTok
+                    else CommentTok
                 tok -> tok
-          in Just ((t', chunk), (txt', ts))
+           in Just ((t', chunk), (txt', ts))
         Just (txt', chunk) ->
           Just ((SpaceTok, chunk), (txt', tss))
 
@@ -113,41 +123,43 @@ sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
 -- locations of corresponding spans in the given input stream.
 --
 -- @since 0.0.2.0
-
 tokenizeHaskellLoc :: Text -> Maybe [(Token, Loc)]
 tokenizeHaskellLoc input =
   case L.unP pLexer parseState of
     L.PFailed {} -> Nothing
-    L.POk    _ x -> Just x
+    L.POk _ x -> Just x
   where
     location = mkRealSrcLoc (mkFastString "") 1 1
     buffer = stringToStringBuffer (T.unpack input)
     parseState = L.mkPStatePure parserFlags buffer location
     parserFlags = L.mkParserFlags (foldl' xopt_set initialDynFlags enabledExts)
-    initialDynFlags = DynFlags
-      { warningFlags = ES.empty
-      , generalFlags = ES.fromList
-        [ Opt_Haddock
-        , Opt_KeepRawTokenStream
-        ]
-      , extensions = []
-      , extensionFlags = ES.empty
-      , safeHaskell = Sf_Safe
-      , language = Just Haskell2010
-      , ghcNameVersion = GhcNameVersion
-        { ghcNameVersion_programName = "ghc"
-        , ghcNameVersion_projectVersion = cProjectVersion
+    initialDynFlags =
+      DynFlags
+        { warningFlags = ES.empty,
+          generalFlags =
+            ES.fromList
+              [ Opt_Haddock,
+                Opt_KeepRawTokenStream
+              ],
+          extensions = [],
+          extensionFlags = ES.empty,
+          safeHaskell = Sf_Safe,
+          language = Just Haskell2010,
+          ghcNameVersion =
+            GhcNameVersion
+              { ghcNameVersion_programName = "ghc",
+                ghcNameVersion_projectVersion = cProjectVersion
+              },
+          fileSettings = FileSettings {},
+          toolSettings =
+            ToolSettings
+              { toolSettings_opt_P_fingerprint = fingerprint0,
+                toolSettings_pgm_F = ""
+              },
+          platformMisc = PlatformMisc {}
         }
-      , fileSettings = FileSettings {}
-      , toolSettings = ToolSettings
-          { toolSettings_opt_P_fingerprint = fingerprint0
-          , toolSettings_pgm_F = ""
-          }
-      , platformMisc = PlatformMisc {}
-      }
 
 -- | Haskell lexer.
-
 pLexer :: L.P [(Token, Loc)]
 pLexer = go
   where
@@ -155,89 +167,89 @@ pLexer = go
       r <- L.lexer False return
       case r of
         L _ L.ITeof -> return []
-        _           ->
+        _ ->
           case fixupToken r of
             Nothing -> go
-            Just  x -> (x:) <$> go
+            Just x -> (x :) <$> go
 
 -- | Convert @'Located' 'L.Token'@ representation to a more convenient for
 -- us form.
-
 fixupToken :: Located L.Token -> Maybe (Token, Loc)
 fixupToken (L srcSpan tok) = (classifyToken tok,) <$> srcSpanToLoc srcSpan
 
 -- | Convert 'SrcSpan' to 'Loc'.
-
 srcSpanToLoc :: SrcSpan -> Maybe Loc
 srcSpanToLoc (RealSrcSpan rss) =
   let start = realSrcSpanStart rss
-      end   = realSrcSpanEnd   rss
-  in if start == end
-       then Nothing -- NOTE Some magic auto-generated tokens that do not
-            -- actually appear in the input stream. Drop them.
-       else Just $ Loc (srcLocLine start)
-                       (srcLocCol start)
-                       (srcLocLine end)
-                       (srcLocCol end)
+      end = realSrcSpanEnd rss
+   in if start == end
+        then Nothing -- NOTE Some magic auto-generated tokens that do not
+          -- actually appear in the input stream. Drop them.
+        else
+          Just $
+            Loc
+              (srcLocLine start)
+              (srcLocCol start)
+              (srcLocLine end)
+              (srcLocCol end)
 srcSpanToLoc _ = Nothing
 
 -- | Classify a 'L.Token' in terms of 'Token'.
-
 classifyToken :: L.Token -> Token
 classifyToken = \case
   -- Keywords
-  L.ITas        -> KeywordTok
-  L.ITcase      -> KeywordTok
-  L.ITclass     -> KeywordTok
-  L.ITdata      -> KeywordTok
-  L.ITdefault   -> KeywordTok
-  L.ITderiving  -> KeywordTok
-  L.ITdo        -> KeywordTok
-  L.ITelse      -> KeywordTok
-  L.IThiding    -> KeywordTok
-  L.ITforeign   -> KeywordTok
-  L.ITif        -> KeywordTok
-  L.ITimport    -> KeywordTok
-  L.ITin        -> KeywordTok
-  L.ITinfix     -> KeywordTok
-  L.ITinfixl    -> KeywordTok
-  L.ITinfixr    -> KeywordTok
-  L.ITinstance  -> KeywordTok
-  L.ITlet       -> KeywordTok
-  L.ITmodule    -> KeywordTok
-  L.ITnewtype   -> KeywordTok
-  L.ITof        -> KeywordTok
+  L.ITas -> KeywordTok
+  L.ITcase -> KeywordTok
+  L.ITclass -> KeywordTok
+  L.ITdata -> KeywordTok
+  L.ITdefault -> KeywordTok
+  L.ITderiving -> KeywordTok
+  L.ITdo -> KeywordTok
+  L.ITelse -> KeywordTok
+  L.IThiding -> KeywordTok
+  L.ITforeign -> KeywordTok
+  L.ITif -> KeywordTok
+  L.ITimport -> KeywordTok
+  L.ITin -> KeywordTok
+  L.ITinfix -> KeywordTok
+  L.ITinfixl -> KeywordTok
+  L.ITinfixr -> KeywordTok
+  L.ITinstance -> KeywordTok
+  L.ITlet -> KeywordTok
+  L.ITmodule -> KeywordTok
+  L.ITnewtype -> KeywordTok
+  L.ITof -> KeywordTok
   L.ITqualified -> KeywordTok
-  L.ITthen      -> KeywordTok
-  L.ITtype      -> KeywordTok
-  L.ITwhere     -> KeywordTok
-  L.ITforall _  -> KeywordTok
-  L.ITexport    -> KeywordTok
-  L.ITlabel     -> KeywordTok
-  L.ITdynamic   -> KeywordTok
-  L.ITsafe      -> KeywordTok
+  L.ITthen -> KeywordTok
+  L.ITtype -> KeywordTok
+  L.ITwhere -> KeywordTok
+  L.ITforall _ -> KeywordTok
+  L.ITexport -> KeywordTok
+  L.ITlabel -> KeywordTok
+  L.ITdynamic -> KeywordTok
+  L.ITsafe -> KeywordTok
   L.ITinterruptible -> KeywordTok
-  L.ITunsafe    -> KeywordTok
+  L.ITunsafe -> KeywordTok
   L.ITstdcallconv -> KeywordTok
   L.ITccallconv -> KeywordTok
-  L.ITcapiconv  -> KeywordTok
+  L.ITcapiconv -> KeywordTok
   L.ITprimcallconv -> KeywordTok
   L.ITjavascriptcallconv -> KeywordTok
-  L.ITmdo       -> KeywordTok
-  L.ITfamily    -> KeywordTok
-  L.ITrole      -> KeywordTok
-  L.ITgroup     -> KeywordTok
-  L.ITby        -> KeywordTok
-  L.ITusing     -> KeywordTok
-  L.ITpattern   -> KeywordTok
-  L.ITstatic    -> KeywordTok
-  L.ITstock     -> KeywordTok
-  L.ITanyclass  -> KeywordTok
-  L.ITvia       -> KeywordTok
-  L.ITunit      -> KeywordTok
+  L.ITmdo -> KeywordTok
+  L.ITfamily -> KeywordTok
+  L.ITrole -> KeywordTok
+  L.ITgroup -> KeywordTok
+  L.ITby -> KeywordTok
+  L.ITusing -> KeywordTok
+  L.ITpattern -> KeywordTok
+  L.ITstatic -> KeywordTok
+  L.ITstock -> KeywordTok
+  L.ITanyclass -> KeywordTok
+  L.ITvia -> KeywordTok
+  L.ITunit -> KeywordTok
   L.ITsignature -> KeywordTok
   L.ITdependency -> KeywordTok
-  L.ITrequires  -> KeywordTok
+  L.ITrequires -> KeywordTok
   -- Pragmas
   L.ITinline_prag {} -> PragmaTok
   L.ITspec_prag _ -> PragmaTok
@@ -354,7 +366,7 @@ classifyToken = \case
   -- Special
   L.ITunknown _ -> OtherTok
   L.ITeof -> OtherTok -- normally is not included in results
-  -- Documentation annotations
+    -- Documentation annotations
   L.ITdocCommentNext _ -> CommentTok
   L.ITdocCommentPrev _ -> CommentTok
   L.ITdocCommentNamed _ -> CommentTok
@@ -367,29 +379,26 @@ classifyToken = \case
 -- Text traversing
 
 -- | A type for 'Text' with line\/column location attached.
-
-data Text' = Text'
-  {-# UNPACK #-} !Int
-  {-# UNPACK #-} !Int
-  {-# UNPACK #-} !Text
+data Text'
+  = Text'
+      {-# UNPACK #-} !Int
+      {-# UNPACK #-} !Int
+      {-# UNPACK #-} !Text
   deriving (Show)
 
 -- | Create 'Text'' from 'Text'.
-
 initText' :: Text -> Text'
 initText' = Text' 1 1
 
 -- | Try to fetch white space before start of span at 'Loc'.
-
 tryFetchSpace :: Text' -> Loc -> Maybe (Text', Text)
 tryFetchSpace txt (Loc sl sc _ _) =
   let (txt', r) = reachLoc txt sl sc
-  in if T.null r
-       then Nothing
-       else Just (txt', r)
+   in if T.null r
+        then Nothing
+        else Just (txt', r)
 
 -- | Try to fetch the rest of 'Text'' stream.
-
 tryFetchRest :: Text' -> Maybe (Text', Text)
 tryFetchRest (Text' l c txt) =
   if T.null txt
@@ -397,18 +406,18 @@ tryFetchRest (Text' l c txt) =
     else Just (Text' l c "", txt)
 
 -- | Fetch a span at 'Loc'.
-
 fetchSpan :: Text' -> Loc -> (Text', Text)
 fetchSpan txt (Loc _ _ el ec) = reachLoc txt el ec
 
 -- | Reach given line\/column location and return 'Text' that has been
 -- traversed.
-
-reachLoc
-  :: Text'
-  -> Int               -- ^ Line number to reach
-  -> Int               -- ^ Column number to reach
-  -> (Text', Text)
+reachLoc ::
+  Text' ->
+  -- | Line number to reach
+  Int ->
+  -- | Column number to reach
+  Int ->
+  (Text', Text)
 reachLoc txt@(Text' _ _ original) l c =
   let chunk = T.unfoldr f txt
       f (Text' l' c' s) = do
@@ -417,15 +426,14 @@ reachLoc txt@(Text' _ _ original) l c =
         let (l'', c'') = case ch of
               '\n' -> (l' + 1, 1)
               '\t' -> (l', c' + 8 - ((c' - 1) `rem` 8))
-              _    -> (l', c' + 1)
+              _ -> (l', c' + 1)
         return (ch, Text' l'' c'' s')
-  in (Text' l c (T.drop (T.length chunk) original), chunk)
+   in (Text' l c (T.drop (T.length chunk) original), chunk)
 
 ----------------------------------------------------------------------------
 -- Pragmas detection
 
 -- | Detect file header pragma.
-
 isHeaderPragma :: Text -> Bool
 isHeaderPragma txt0 = isJust $ do
   txt1 <- T.stripStart <$> T.stripPrefix "{-#" txt0
@@ -435,34 +443,33 @@ isHeaderPragma txt0 = isJust $ do
 -- Language extensions
 
 -- | Language extensions we enable by default.
-
 enabledExts :: [Extension]
 enabledExts =
-  [ ForeignFunctionInterface
-  , InterruptibleFFI
-  , CApiFFI
-  , Arrows
-  , TemplateHaskell
-  , TemplateHaskellQuotes
-  , ImplicitParams
-  , OverloadedLabels
-  , ExplicitForAll
-  , BangPatterns
-  , PatternSynonyms
-  , MagicHash
-  , RecursiveDo
-  , UnicodeSyntax
-  , UnboxedTuples
-  , UnboxedSums
-  , DatatypeContexts
-  , TransformListComp
-  , QuasiQuotes
-  , LambdaCase
-  , BinaryLiterals
-  , NegativeLiterals
-  , HexFloatLiterals
-  , TypeApplications
-  , StaticPointers
-  , NumericUnderscores
-  , StarIsType
+  [ ForeignFunctionInterface,
+    InterruptibleFFI,
+    CApiFFI,
+    Arrows,
+    TemplateHaskell,
+    TemplateHaskellQuotes,
+    ImplicitParams,
+    OverloadedLabels,
+    ExplicitForAll,
+    BangPatterns,
+    PatternSynonyms,
+    MagicHash,
+    RecursiveDo,
+    UnicodeSyntax,
+    UnboxedTuples,
+    UnboxedSums,
+    DatatypeContexts,
+    TransformListComp,
+    QuasiQuotes,
+    LambdaCase,
+    BinaryLiterals,
+    NegativeLiterals,
+    HexFloatLiterals,
+    TypeApplications,
+    StaticPointers,
+    NumericUnderscores,
+    StarIsType
   ]
