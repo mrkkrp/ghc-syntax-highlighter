@@ -91,6 +91,8 @@ data Loc = Loc !Int !Int !Int !Int
 
 -- | Tokenize Haskell source code. If the code cannot be parsed, return
 -- 'Nothing'. Otherwise return the original input tagged by 'Token's.
+-- 'Nothing' is rarely returned if ever, because it looks like the lexer is
+-- capable of interpreting almost any text as a stream of GHC tokens.
 --
 -- The parser does not require the input source code to form a valid Haskell
 -- program, so as long as the lexer can decompose your input (most of the

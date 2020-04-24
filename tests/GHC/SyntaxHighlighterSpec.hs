@@ -1,9 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module GHC.SyntaxHighlighterSpec
-  ( spec,
-  )
-where
+module GHC.SyntaxHighlighterSpec (spec) where
 
 import Data.Text (Text)
 import qualified Data.Text.IO as T
