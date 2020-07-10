@@ -186,7 +186,7 @@ srcSpanToLoc (RealSrcSpan rss) =
       end = realSrcSpanEnd rss
    in if start == end
         then Nothing -- NOTE Some magic auto-generated tokens that do not
-          -- actually appear in the input stream. Drop them.
+        -- actually appear in the input stream. Drop them.
         else
           Just $
             Loc
@@ -368,7 +368,7 @@ classifyToken = \case
   -- Special
   L.ITunknown _ -> OtherTok
   L.ITeof -> OtherTok -- normally is not included in results
-    -- Documentation annotations
+  -- Documentation annotations
   L.ITdocCommentNext _ -> CommentTok
   L.ITdocCommentPrev _ -> CommentTok
   L.ITdocCommentNamed _ -> CommentTok
