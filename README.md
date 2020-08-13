@@ -38,6 +38,11 @@ information.
 it's hardcoded to use only that library for highlighting, so some creativity
 may be necessary to get it work.
 
+## Limitations
+
+CPP directives are not lexed correctly, because the GHC parser is not
+designed to parse them.
+
 ## Contribution
 
 Issues, bugs, and questions may be reported in [the GitHub issue tracker for
