@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
@@ -30,16 +31,16 @@ import Data.List (foldl', unfoldr)
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
-import DynFlags
-import qualified EnumSet as ES
-import FastString (mkFastString)
-import Fingerprint (fingerprint0)
+import qualified GHC.Data.EnumSet as ES
+import GHC.Data.FastString (mkFastString)
+import GHC.Data.StringBuffer
+import GHC.Driver.Session as DynFlags
 import GHC.LanguageExtensions
+import qualified GHC.Parser.Lexer as L
+import GHC.Settings
+import GHC.Types.SrcLoc
+import GHC.Utils.Fingerprint (fingerprint0)
 import GHC.Version (cProjectVersion)
-import qualified Lexer as L
-import SrcLoc
-import StringBuffer
-import ToolSettings
 
 ----------------------------------------------------------------------------
 -- Data types
@@ -181,19 +182,23 @@ fixupToken (L srcSpan tok) = (classifyToken tok,) <$> srcSpanToLoc srcSpan
 
 -- | Convert 'SrcSpan' to 'Loc'.
 srcSpanToLoc :: SrcSpan -> Maybe Loc
-srcSpanToLoc (RealSrcSpan rss) =
-  let start = realSrcSpanStart rss
-      end = realSrcSpanEnd rss
+srcSpanToLoc (RealSrcSpan s _) =
+  let srcSpanSLine = srcSpanStartLine s
+      srcSpanSCol = srcSpanStartCol s
+      srcSpanELine = srcSpanEndLine s
+      srcSpanECol = srcSpanEndCol s
+      start = (srcSpanSLine, srcSpanSCol)
+      end = (srcSpanELine, srcSpanECol)
    in if start == end
         then Nothing -- NOTE Some magic auto-generated tokens that do not
         -- actually appear in the input stream. Drop them.
         else
           Just $
             Loc
-              (srcLocLine start)
-              (srcLocCol start)
-              (srcLocLine end)
-              (srcLocCol end)
+              srcSpanSLine
+              srcSpanSCol
+              srcSpanELine
+              srcSpanECol
 srcSpanToLoc _ = Nothing
 
 -- | Classify a 'L.Token' in terms of 'Token'.
@@ -206,7 +211,7 @@ classifyToken = \case
   L.ITdata -> KeywordTok
   L.ITdefault -> KeywordTok
   L.ITderiving -> KeywordTok
-  L.ITdo -> KeywordTok
+  L.ITdo _ -> KeywordTok
   L.ITelse -> KeywordTok
   L.IThiding -> KeywordTok
   L.ITforeign -> KeywordTok
@@ -237,7 +242,7 @@ classifyToken = \case
   L.ITcapiconv -> KeywordTok
   L.ITprimcallconv -> KeywordTok
   L.ITjavascriptcallconv -> KeywordTok
-  L.ITmdo -> KeywordTok
+  L.ITmdo _ -> KeywordTok
   L.ITfamily -> KeywordTok
   L.ITrole -> KeywordTok
   L.ITgroup -> KeywordTok
@@ -264,7 +269,6 @@ classifyToken = \case
   L.ITcolumn_prag _ -> PragmaTok
   L.ITscc_prag _ -> PragmaTok
   L.ITgenerated_prag _ -> PragmaTok
-  L.ITcore_prag _ -> PragmaTok
   L.ITunpack_prag _ -> PragmaTok
   L.ITnounpack_prag _ -> PragmaTok
   L.ITann_prag _ -> PragmaTok
@@ -290,6 +294,7 @@ classifyToken = \case
   L.ITvbar -> SymbolTok
   L.ITlarrow _ -> SymbolTok
   L.ITrarrow _ -> SymbolTok
+  L.ITlolly -> SymbolTok
   L.ITat -> SymbolTok
   L.ITtilde -> SymbolTok
   L.ITdarrow _ -> SymbolTok
@@ -313,9 +318,11 @@ classifyToken = \case
   L.ITunderscore -> SymbolTok
   L.ITbackquote -> SymbolTok
   L.ITsimpleQuote -> SymbolTok
+  L.ITpercent -> SymbolTok
   -- NOTE GHC thinks these are reserved symbols, but I classify them as
   -- operators.
   L.ITminus -> OperatorTok
+  L.ITprefixminus -> OperatorTok
   L.ITdot -> OperatorTok
   -- Identifiers
   L.ITvarid _ -> VariableTok
@@ -347,13 +354,11 @@ classifyToken = \case
   L.ITcloseQuote _ -> SymbolTok
   L.ITopenTExpQuote _ -> SymbolTok
   L.ITcloseTExpQuote -> SymbolTok
-  L.ITidEscape _ -> SymbolTok
-  L.ITparenEscape -> SymbolTok
-  L.ITidTyEscape _ -> SymbolTok
-  L.ITparenTyEscape -> SymbolTok
   L.ITtyQuote -> SymbolTok
   L.ITquasiQuote _ -> SymbolTok
   L.ITqQuasiQuote _ -> SymbolTok
+  L.ITdollar -> SymbolTok
+  L.ITdollardollar -> SymbolTok
   -- Arrow notation
   L.ITproc -> KeywordTok
   L.ITrec -> KeywordTok
