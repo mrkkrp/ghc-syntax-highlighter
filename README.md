@@ -6,7 +6,8 @@
 [![Stackage LTS](http://stackage.org/package/ghc-syntax-highlighter/badge/lts)](http://stackage.org/lts/package/ghc-syntax-highlighter)
 ![CI](https://github.com/mrkkrp/ghc-syntax-highlighter/workflows/CI/badge.svg?branch=master)
 
-This is a syntax highlighter library for Haskell using lexer of GHC itself.
+This is a syntax highlighter library for Haskell using the lexer of GHC
+itself.
 
 Here is a blog post announcing the package, the readme is mostly derived
 from it:
@@ -16,9 +17,10 @@ from it:
 ## Motivation
 
 Parsing Haskell is hard, because Haskell is a complex language with
-countless features. The only way to get it right 100% is to use parser of
-GHC itself. Fortunately, now there is the [`ghc`][ghc] package, which as of
-version 8.4.1 exports enough of GHC's source code to allow us use its lexer.
+countless features. The only way to get it right 100% is to use the parser
+of GHC itself. Fortunately, now there is the [`ghc`][ghc] package, which as
+of version 8.4.1 exports enough of GHC's source code to allow us use its
+lexer.
 
 Alternative approaches, even decent ones like [`highlight.js`][hljs] either
 don't support cutting-edge features or do their work without sufficient

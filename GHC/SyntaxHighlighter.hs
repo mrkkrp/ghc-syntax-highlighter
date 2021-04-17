@@ -16,8 +16,8 @@
 -- The module allows you to decompose a 'Text' stream containing Haskell
 -- source code into a stream of 'Text' chunks tagged with 'Token'.
 --
--- This library uses GHC's lexer, so the result is guaranteed to be 100%
--- correct, as if it was parsed by GHC itself.
+-- This library uses the GHC's lexer, so the result is guaranteed to be 100%
+-- correct, as if it were parsed by GHC itself.
 module GHC.SyntaxHighlighter
   ( Token (..),
     Loc (..),
@@ -75,7 +75,7 @@ data Token
     OtherTok
   deriving (Eq, Ord, Enum, Bounded, Show)
 
--- | Start and end positions of a span. The arguments of the data
+-- | The start and end positions of a span. The arguments of the data
 -- constructor contain in order:
 --
 --     * Line number of start position of a span
@@ -92,7 +92,7 @@ data Loc = Loc !Int !Int !Int !Int
 
 -- | Tokenize Haskell source code. If the code cannot be parsed, return
 -- 'Nothing'. Otherwise return the original input tagged by 'Token's.
--- 'Nothing' is rarely returned if ever, because it looks like the lexer is
+-- 'Nothing' is rarely returned, if ever, because it looks like the lexer is
 -- capable of interpreting almost any text as a stream of GHC tokens.
 --
 -- The parser does not require the input source code to form a valid Haskell
@@ -162,7 +162,7 @@ tokenizeHaskellLoc input =
           platformMisc = PlatformMisc {}
         }
 
--- | Haskell lexer.
+-- | The Haskell lexer.
 pLexer :: L.P [(Token, Loc)]
 pLexer = go
   where
@@ -175,12 +175,12 @@ pLexer = go
             Nothing -> go
             Just x -> (x :) <$> go
 
--- | Convert @'Located' 'L.Token'@ representation to a more convenient for
+-- | Convert @'Located' 'L.Token'@ representation into a more convenient for
 -- us form.
 fixupToken :: Located L.Token -> Maybe (Token, Loc)
 fixupToken (L srcSpan tok) = (classifyToken tok,) <$> srcSpanToLoc srcSpan
 
--- | Convert 'SrcSpan' to 'Loc'.
+-- | Convert 'SrcSpan' into 'Loc'.
 srcSpanToLoc :: SrcSpan -> Maybe Loc
 srcSpanToLoc (RealSrcSpan s _) =
   let srcSpanSLine = srcSpanStartLine s
