@@ -6,8 +6,7 @@
 [![Stackage LTS](http://stackage.org/package/ghc-syntax-highlighter/badge/lts)](http://stackage.org/lts/package/ghc-syntax-highlighter)
 ![CI](https://github.com/mrkkrp/ghc-syntax-highlighter/workflows/CI/badge.svg?branch=master)
 
-This is a syntax highlighter library for Haskell using the lexer of GHC
-itself.
+This is a syntax highlighter library for Haskell using the lexer of GHC.
 
 Here is a blog post announcing the package, the readme is mostly derived
 from it:
