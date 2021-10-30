@@ -5,7 +5,7 @@ license:         BSD3
 license-file:    LICENSE.md
 maintainer:      Mark Karpov <markkarpov92@gmail.com>
 author:          Mark Karpov <markkarpov92@gmail.com>
-tested-with:     ghc ==8.8.4 ghc ==8.10.5 ghc ==9.0.1
+tested-with:     ghc ==8.10.7 ghc ==9.0.1 ghc ==9.2.1
 homepage:        https://github.com/mrkkrp/ghc-syntax-highlighter
 bug-reports:     https://github.com/mrkkrp/ghc-syntax-highlighter/issues
 synopsis:        Syntax highlighter for Haskell using the lexer of GHC
@@ -31,7 +31,7 @@ library
     default-language: Haskell2010
     build-depends:
         base >=4.13 && <5.0,
-        ghc-lib-parser >=9.0 && <9.1,
+        ghc-lib-parser >=9.2 && <9.3,
         text >=0.2 && <1.3
 
     if flag(dev)
