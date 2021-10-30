@@ -27,20 +27,16 @@ module GHC.SyntaxHighlighter
 where
 
 import Control.Monad
-import Data.List (foldl', unfoldr)
+import Data.List (unfoldr)
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified GHC.Data.EnumSet as ES
 import GHC.Data.FastString (mkFastString)
 import GHC.Data.StringBuffer
-import GHC.Driver.Session as DynFlags
 import GHC.LanguageExtensions
 import qualified GHC.Parser.Lexer as L
-import GHC.Settings
 import GHC.Types.SrcLoc
-import GHC.Utils.Fingerprint (fingerprint0)
-import GHC.Version (cProjectVersion)
 
 ----------------------------------------------------------------------------
 -- Data types
@@ -134,33 +130,15 @@ tokenizeHaskellLoc input =
   where
     location = mkRealSrcLoc (mkFastString "") 1 1
     buffer = stringToStringBuffer (T.unpack input)
-    parseState = L.mkPStatePure parserFlags buffer location
-    parserFlags = L.mkParserFlags (foldl' xopt_set initialDynFlags enabledExts)
-    initialDynFlags =
-      DynFlags
-        { warningFlags = ES.empty,
-          generalFlags =
-            ES.fromList
-              [ Opt_Haddock,
-                Opt_KeepRawTokenStream
-              ],
-          extensions = [],
-          extensionFlags = ES.empty,
-          safeHaskell = Sf_Safe,
-          language = Just Haskell2010,
-          ghcNameVersion =
-            GhcNameVersion
-              { ghcNameVersion_programName = "ghc",
-                ghcNameVersion_projectVersion = cProjectVersion
-              },
-          fileSettings = FileSettings {},
-          toolSettings =
-            ToolSettings
-              { toolSettings_opt_P_fingerprint = fingerprint0,
-                toolSettings_pgm_F = ""
-              },
-          platformMisc = PlatformMisc {}
-        }
+    parseState = L.initParserState parserOpts buffer location
+    parserOpts =
+      L.mkParserOpts
+        ES.empty
+        (ES.fromList enabledExts)
+        True -- safe imports
+        True -- keep Haddock tokens
+        True -- keep comment tokens
+        False -- lex LINE and COLUMN pragmas
 
 -- | The Haskell lexer.
 pLexer :: L.P [(Token, Loc)]
@@ -268,7 +246,6 @@ classifyToken = \case
   L.ITline_prag _ -> PragmaTok
   L.ITcolumn_prag _ -> PragmaTok
   L.ITscc_prag _ -> PragmaTok
-  L.ITgenerated_prag _ -> PragmaTok
   L.ITunpack_prag _ -> PragmaTok
   L.ITnounpack_prag _ -> PragmaTok
   L.ITann_prag _ -> PragmaTok
@@ -319,6 +296,7 @@ classifyToken = \case
   L.ITbackquote -> SymbolTok
   L.ITsimpleQuote -> SymbolTok
   L.ITpercent -> SymbolTok
+  L.ITproj _ -> SymbolTok
   -- NOTE GHC thinks these are reserved symbols, but I classify them as
   -- operators.
   L.ITminus -> OperatorTok
@@ -374,13 +352,13 @@ classifyToken = \case
   L.ITunknown _ -> OtherTok
   L.ITeof -> OtherTok -- normally is not included in results
   -- Documentation annotations
-  L.ITdocCommentNext _ -> CommentTok
-  L.ITdocCommentPrev _ -> CommentTok
-  L.ITdocCommentNamed _ -> CommentTok
-  L.ITdocSection _ _ -> CommentTok
-  L.ITdocOptions _ -> CommentTok
-  L.ITlineComment _ -> CommentTok
-  L.ITblockComment _ -> CommentTok
+  L.ITdocCommentNext {} -> CommentTok
+  L.ITdocCommentPrev {} -> CommentTok
+  L.ITdocCommentNamed {} -> CommentTok
+  L.ITdocSection {} -> CommentTok
+  L.ITdocOptions {} -> CommentTok
+  L.ITlineComment {} -> CommentTok
+  L.ITblockComment {} -> CommentTok
 
 ----------------------------------------------------------------------------
 -- Text traversing
