@@ -1,7 +1,7 @@
-cabal-version:   1.18
+cabal-version:   2.4
 name:            ghc-syntax-highlighter
 version:         0.0.8.0
-license:         BSD3
+license:         BSD-3-Clause
 license-file:    LICENSE.md
 maintainer:      Mark Karpov <markkarpov92@gmail.com>
 author:          Mark Karpov <markkarpov92@gmail.com>
