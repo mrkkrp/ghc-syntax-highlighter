@@ -37,6 +37,8 @@ import GHC.Data.StringBuffer
 import GHC.LanguageExtensions
 import qualified GHC.Parser.Lexer as L
 import GHC.Types.SrcLoc
+import GHC.Utils.Error (DiagOpts (..))
+import GHC.Utils.Outputable (defaultSDocContext)
 
 ----------------------------------------------------------------------------
 -- Data types
@@ -133,12 +135,22 @@ tokenizeHaskellLoc input =
     parseState = L.initParserState parserOpts buffer location
     parserOpts =
       L.mkParserOpts
-        ES.empty
         (ES.fromList enabledExts)
+        diagOpts
+        []
         True -- safe imports
         True -- keep Haddock tokens
         True -- keep comment tokens
         False -- lex LINE and COLUMN pragmas
+    diagOpts =
+      DiagOpts
+        { diag_warning_flags = ES.empty,
+          diag_fatal_warning_flags = ES.empty,
+          diag_warn_is_error = False,
+          diag_reverse_errors = False,
+          diag_max_errors = Nothing,
+          diag_ppr_ctx = defaultSDocContext
+        }
 
 -- | The Haskell lexer.
 pLexer :: L.P [(Token, Loc)]
@@ -185,6 +197,7 @@ classifyToken = \case
   -- Keywords
   L.ITas -> KeywordTok
   L.ITcase -> KeywordTok
+  L.ITlcases -> KeywordTok
   L.ITclass -> KeywordTok
   L.ITdata -> KeywordTok
   L.ITdefault -> KeywordTok
@@ -261,6 +274,7 @@ classifyToken = \case
   L.ITincoherent_prag _ -> PragmaTok
   L.ITctype _ -> PragmaTok
   L.ITcomment_line_prag -> PragmaTok
+  L.ITopaque_prag _ -> PragmaTok
   -- Reserved symbols
   L.ITdotdot -> SymbolTok
   L.ITcolon -> SymbolTok
@@ -352,10 +366,7 @@ classifyToken = \case
   L.ITunknown _ -> OtherTok
   L.ITeof -> OtherTok -- normally is not included in results
   -- Documentation annotations
-  L.ITdocCommentNext {} -> CommentTok
-  L.ITdocCommentPrev {} -> CommentTok
-  L.ITdocCommentNamed {} -> CommentTok
-  L.ITdocSection {} -> CommentTok
+  L.ITdocComment {} -> CommentTok
   L.ITdocOptions {} -> CommentTok
   L.ITlineComment {} -> CommentTok
   L.ITblockComment {} -> CommentTok
