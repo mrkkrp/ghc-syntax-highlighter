@@ -326,7 +326,7 @@ classifyToken = \case
   L.ITqvarsym _ -> OperatorTok
   L.ITqconsym _ -> OperatorTok
   L.ITdupipvarid _ -> VariableTok
-  L.ITlabelvarid _ -> VariableTok
+  L.ITlabelvarid {} -> VariableTok
   -- Basic types
   L.ITchar _ _ -> CharTok
   L.ITstring _ _ -> StringTok
