@@ -28,7 +28,7 @@ flag dev
 
 library
     exposed-modules:  GHC.SyntaxHighlighter
-    default-language: Haskell2010
+    default-language: GHC2021
     build-depends:
         base >=4.16 && <5.0,
         ghc-lib-parser >=9.6 && <9.7,
@@ -48,7 +48,7 @@ test-suite tests
     build-tool-depends: hspec-discover:hspec-discover >=2.0 && <3.0
     hs-source-dirs:     tests
     other-modules:      GHC.SyntaxHighlighterSpec
-    default-language:   Haskell2010
+    default-language:   GHC2021
     build-depends:
         base >=4.16 && <5.0,
         ghc-syntax-highlighter,
