@@ -36,8 +36,8 @@ library
 
     if flag(dev)
         ghc-options:
-            -Wall -Werror -Wcompat -Wincomplete-record-updates
-            -Wincomplete-uni-patterns -Wnoncanonical-monad-instances
+            -Wall -Werror -Wredundant-constraints -Wpartial-fields
+            -Wunused-packages
 
     else
         ghc-options: -O2 -Wall
@@ -56,7 +56,9 @@ test-suite tests
         hspec >=2.0 && <3.0
 
     if flag(dev)
-        ghc-options: -Wall -Werror
+        ghc-options:
+            -Wall -Werror -Wredundant-constraints -Wpartial-fields
+            -Wunused-packages
 
     else
         ghc-options: -O2 -Wall
