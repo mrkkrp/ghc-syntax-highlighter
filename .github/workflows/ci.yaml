@@ -18,7 +18,7 @@ jobs:
     needs: ormolu
     strategy:
       matrix:
-        cabal: ["3.8"]
+        cabal: ["3.10"]
         ghc: ["9.2.7", "9.4.4", "9.6.1"]
     env:
       CONFIG: "--enable-tests --enable-benchmarks --flags=dev"
