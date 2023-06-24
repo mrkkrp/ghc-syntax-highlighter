@@ -3,7 +3,7 @@
 module GHC.SyntaxHighlighterSpec (spec) where
 
 import Data.Text (Text)
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 import GHC.SyntaxHighlighter
 import Test.Hspec
 

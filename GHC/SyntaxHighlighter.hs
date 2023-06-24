@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
@@ -30,12 +29,12 @@ import Control.Monad
 import Data.List (unfoldr)
 import Data.Maybe (isJust)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified GHC.Data.EnumSet as ES
+import Data.Text qualified as T
+import GHC.Data.EnumSet qualified as ES
 import GHC.Data.FastString (mkFastString)
 import GHC.Data.StringBuffer
 import GHC.LanguageExtensions
-import qualified GHC.Parser.Lexer as L
+import GHC.Parser.Lexer qualified as L
 import GHC.Types.SrcLoc
 import GHC.Utils.Error (DiagOpts (..))
 import GHC.Utils.Outputable (defaultSDocContext)
