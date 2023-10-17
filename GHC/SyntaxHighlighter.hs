@@ -36,6 +36,7 @@ import GHC.Data.StringBuffer
 import GHC.LanguageExtensions
 import GHC.Parser.Lexer qualified as L
 import GHC.Types.SrcLoc
+import GHC.Unit.Module.Warnings (emptyWarningCategorySet)
 import GHC.Utils.Error (DiagOpts (..))
 import GHC.Utils.Outputable (defaultSDocContext)
 
@@ -145,6 +146,8 @@ tokenizeHaskellLoc input =
       DiagOpts
         { diag_warning_flags = ES.empty,
           diag_fatal_warning_flags = ES.empty,
+          diag_custom_warning_categories = emptyWarningCategorySet,
+          diag_fatal_custom_warning_categories = emptyWarningCategorySet,
           diag_warn_is_error = False,
           diag_reverse_errors = False,
           diag_max_errors = Nothing,
@@ -334,7 +337,15 @@ classifyToken = \case
   L.ITprimchar _ _ -> CharTok
   L.ITprimstring _ _ -> StringTok
   L.ITprimint _ _ -> IntegerTok
+  L.ITprimint8 _ _ -> IntegerTok
+  L.ITprimint16 _ _ -> IntegerTok
+  L.ITprimint32 _ _ -> IntegerTok
+  L.ITprimint64 _ _ -> IntegerTok
   L.ITprimword _ _ -> IntegerTok
+  L.ITprimword8 _ _ -> IntegerTok
+  L.ITprimword16 _ _ -> IntegerTok
+  L.ITprimword32 _ _ -> IntegerTok
+  L.ITprimword64 _ _ -> IntegerTok
   L.ITprimfloat _ -> RationalTok
   L.ITprimdouble _ -> RationalTok
   -- Template Haskell extension tokens
