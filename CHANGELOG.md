@@ -1,4 +1,4 @@
-## Unreleased
+## GHC syntax highlighter 0.0.12.0
 
 * Uses `ghc-lib-parser-9.10.x.x`
 
