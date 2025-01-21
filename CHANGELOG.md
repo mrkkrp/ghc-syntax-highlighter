@@ -1,6 +1,10 @@
+## GHC syntax highlighter 0.0.13.0
+
+* Uses `ghc-lib-parser-9.12.x.x`.
+
 ## GHC syntax highlighter 0.0.12.0
 
-* Uses `ghc-lib-parser-9.10.x.x`
+* Uses `ghc-lib-parser-9.10.x.x`.
 
 ## GHC syntax highlighter 0.0.11.0
 
