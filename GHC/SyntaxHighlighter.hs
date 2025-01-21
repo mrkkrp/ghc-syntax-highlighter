@@ -336,6 +336,7 @@ classifyToken = \case
   L.ITrational _ -> RationalTok
   L.ITprimchar _ _ -> CharTok
   L.ITprimstring _ _ -> StringTok
+  L.ITstringMulti _ _ -> StringTok
   L.ITprimint _ _ -> IntegerTok
   L.ITprimint8 _ _ -> IntegerTok
   L.ITprimint16 _ _ -> IntegerTok
