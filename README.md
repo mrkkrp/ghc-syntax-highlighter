@@ -4,7 +4,7 @@
 [![Hackage](https://img.shields.io/hackage/v/ghc-syntax-highlighter.svg?style=flat)](https://hackage.haskell.org/package/ghc-syntax-highlighter)
 [![Stackage Nightly](http://stackage.org/package/ghc-syntax-highlighter/badge/nightly)](http://stackage.org/nightly/package/ghc-syntax-highlighter)
 [![Stackage LTS](http://stackage.org/package/ghc-syntax-highlighter/badge/lts)](http://stackage.org/lts/package/ghc-syntax-highlighter)
-![CI](https://github.com/mrkkrp/ghc-syntax-highlighter/workflows/CI/badge.svg?branch=master)
+[![CI](https://github.com/mrkkrp/ghc-syntax-highlighter/actions/workflows/ci.yaml/badge.svg)](https://github.com/mrkkrp/ghc-syntax-highlighter/actions/workflows/ci.yaml)
 
 This is a syntax highlighter library for Haskell using the lexer of GHC.
 
