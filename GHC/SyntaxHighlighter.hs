@@ -137,7 +137,6 @@ tokenizeHaskellLoc input =
       L.mkParserOpts
         (ES.fromList enabledExts)
         diagOpts
-        []
         True -- safe imports
         True -- keep Haddock tokens
         True -- keep comment tokens
@@ -362,6 +361,8 @@ classifyToken = \case
   L.ITqQuasiQuote _ -> SymbolTok
   L.ITdollar -> SymbolTok
   L.ITdollardollar -> SymbolTok
+  L.ITsplice -> SymbolTok
+  L.ITquote -> SymbolTok
   -- Arrow notation
   L.ITproc -> KeywordTok
   L.ITrec -> KeywordTok
