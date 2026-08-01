@@ -1,4 +1,4 @@
-# GHC syntax highligher
+# GHC syntax highlighter
 
 [![License FreeBSD](https://img.shields.io/badge/license-FreeBSD-brightgreen.svg)](http://opensource.org/licenses/BSD-2-Clause)
 [![Hackage](https://img.shields.io/hackage/v/ghc-syntax-highlighter.svg?style=flat)](https://hackage.haskell.org/package/ghc-syntax-highlighter)
@@ -8,7 +8,7 @@
 
 This is a syntax highlighter library for Haskell using the lexer of GHC.
 
-Here is a blog post announcing the package, the readme is mostly derived
+Here is a blog post announcing the package; the README is mostly derived
 from it:
 
 * https://markkarpov.com/post/announcing-ghc-syntax-highlighter.html
@@ -18,26 +18,26 @@ from it:
 Parsing Haskell is hard, because Haskell is a complex language with
 countless features. The only way to get it right 100% is to use the parser
 of GHC itself. Fortunately, now there is the [`ghc`][ghc] package, which as
-of version 8.4.1 exports enough of GHC's source code to allow us use its
+of version 8.4.1 exports enough of GHC's source code to allow us to use its
 lexer.
 
-Alternative approaches, even decent ones like [`highlight.js`][hljs] either
+Alternative approaches, even decent ones like [`highlight.js`][hljs], either
 don't support cutting-edge features or do their work without sufficient
-precision so that many tokens end up combined and the end result is
+precision, so that many tokens end up combined and the end result is
 typically still hard to read.
 
 ## How to use it in your blog
 
 Depends on your markdown processor. If you're an [`mmark`][mmark] user, good
 news, since version 0.2.1.0 of [`mmark-ext`][mmark-ext] it includes the
-`ghcSyntaxHighlighter` extension. Due to flexibility of MMark, it's possible
-to use this highlighter for Haskell and [`skylighting`][skylighting] as a
-fall-back for everything else. Consult [the docs][mmark-ext-docs] for more
-information.
+`ghcSyntaxHighlighter` extension. Due to the flexibility of MMark, it's
+possible to use this highlighter for Haskell and [`skylighting`][skylighting]
+as a fall-back for everything else. Consult [the docs][mmark-ext-docs] for
+more information.
 
-[skylighting][skylighting] is what Pandoc uses. And from what I can tell
+[`skylighting`][skylighting] is what Pandoc uses. And from what I can tell
 it's hardcoded to use only that library for highlighting, so some creativity
-may be necessary to get it work.
+may be necessary to get it to work.
 
 ## Limitations
 
@@ -55,7 +55,7 @@ Pull requests are also welcome.
 
 Copyright © 2018–present Mark Karpov
 
-Distributed under BSD 3 clause license.
+Distributed under the BSD 3-clause license.
 
 [ghc]: https://hackage.haskell.org/package/ghc
 [hljs]: https://highlightjs.org/

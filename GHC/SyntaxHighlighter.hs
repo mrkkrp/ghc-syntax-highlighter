@@ -166,8 +166,8 @@ pLexer = go
             Nothing -> go
             Just x -> (x :) <$> go
 
--- | Convert @'Located' 'L.Token'@ representation into a more convenient for
--- us form.
+-- | Convert the @'Located' 'L.Token'@ representation into a form that is
+-- more convenient for us.
 fixupToken :: Located L.Token -> Maybe (Token, Loc)
 fixupToken (L srcSpan tok) = (classifyToken tok,) <$> srcSpanToLoc srcSpan
 
@@ -398,7 +398,7 @@ data Text'
 initText' :: Text -> Text'
 initText' = Text' 1 1
 
--- | Try to fetch white space before start of span at 'Loc'.
+-- | Try to fetch white space before the start of the span at 'Loc'.
 tryFetchSpace :: Text' -> Loc -> Maybe (Text', Text)
 tryFetchSpace txt (Loc sl sc _ _) =
   let (txt', r) = reachLoc txt sl sc
@@ -417,8 +417,8 @@ tryFetchRest (Text' l c txt) =
 fetchSpan :: Text' -> Loc -> (Text', Text)
 fetchSpan txt (Loc _ _ el ec) = reachLoc txt el ec
 
--- | Reach given line\/column location and return 'Text' that has been
--- traversed.
+-- | Reach the given line\/column location and return the 'Text' that has
+-- been traversed.
 reachLoc ::
   Text' ->
   -- | Line number to reach
