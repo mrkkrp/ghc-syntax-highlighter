@@ -127,7 +127,7 @@ sliceInputStream input toks = unfoldr sliceOnce (initText' input, toks)
 tokenizeHaskellLoc :: Text -> Maybe [(Token, Loc)]
 tokenizeHaskellLoc input =
   case L.unP pLexer parseState of
-    L.PFailed {} -> Nothing
+    L.PFailed{} -> Nothing
     L.POk _ x -> Just x
   where
     location = mkRealSrcLoc (mkFastString "") 1 1
@@ -250,9 +250,9 @@ classifyToken = \case
   L.ITdependency -> KeywordTok
   L.ITrequires -> KeywordTok
   -- Pragmas
-  L.ITinline_prag {} -> PragmaTok
+  L.ITinline_prag{} -> PragmaTok
   L.ITspec_prag _ -> PragmaTok
-  L.ITspec_inline_prag {} -> PragmaTok
+  L.ITspec_inline_prag{} -> PragmaTok
   L.ITsource_prag _ -> PragmaTok
   L.ITrules_prag _ -> PragmaTok
   L.ITwarning_prag _ -> PragmaTok
@@ -327,7 +327,7 @@ classifyToken = \case
   L.ITqvarsym _ -> OperatorTok
   L.ITqconsym _ -> OperatorTok
   L.ITdupipvarid _ -> VariableTok
-  L.ITlabelvarid {} -> VariableTok
+  L.ITlabelvarid{} -> VariableTok
   -- Basic types
   L.ITchar _ _ -> CharTok
   L.ITstring _ _ -> StringTok
@@ -378,10 +378,10 @@ classifyToken = \case
   L.ITunknown _ -> OtherTok
   L.ITeof -> OtherTok -- normally is not included in results
   -- Documentation annotations
-  L.ITdocComment {} -> CommentTok
-  L.ITdocOptions {} -> CommentTok
-  L.ITlineComment {} -> CommentTok
-  L.ITblockComment {} -> CommentTok
+  L.ITdocComment{} -> CommentTok
+  L.ITdocOptions{} -> CommentTok
+  L.ITlineComment{} -> CommentTok
+  L.ITblockComment{} -> CommentTok
 
 ----------------------------------------------------------------------------
 -- Text traversing
